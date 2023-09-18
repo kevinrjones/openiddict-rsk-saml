@@ -1,0 +1,18 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+@if (User.Identity.IsAuthenticated)
+{
+    <h1>Authenticated 🎉</h1>
+    <ul>
+        @foreach (var claim in User.Claims)
+        {
+            <li><strong>@claim.Type:</strong> @claim.Value</li>
+        }
+    </ul>
+}
+else
+{
+    <h1>Unauthenticated ☹</h1>
+}
