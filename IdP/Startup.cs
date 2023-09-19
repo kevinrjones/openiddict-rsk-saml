@@ -8,6 +8,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.IdP.Data;
 using Quartz;
+using Rsk.Saml.Configuration;
+using Rsk.Saml.OpenIddict.AspNetCore.Identity.Configuration.DependencyInjection;
+using Rsk.Saml.OpenIddict.Configuration.DependencyInjection;
+using Rsk.Saml.OpenIddict.EntityFrameworkCore.Configuration.DependacyInjection;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace OpenIddict.IdP;
@@ -115,6 +119,35 @@ public class Startup
                     .EnableTokenEndpointPassthrough()
                     .EnableUserinfoEndpointPassthrough()
                     .EnableStatusCodePagesIntegration();
+
+                options.AddSamlPlugin(builder =>
+                {
+                    builder.UseSamlEntityFrameworkCore()
+                        .AddSamlMessageDbContext(optionsBuilder =>
+                            optionsBuilder.UseMySql(connectionString, serverVersion,
+                                sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
+                        .AddSamlConfigurationDbContext(optionsBuilder =>
+                            optionsBuilder.UseMySql(connectionString, serverVersion,
+                                sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
+                        ;
+
+                    builder.ConfigureSamlOpenIddictServerOptions(serverOptions =>
+                    {
+                        serverOptions.HostOptions = new SamlHostUserInteractionOptions()
+                        {
+                            LoginUrl = "/Identity/Account/Login",
+                            LogoutUrl = "/Connect/Logout"
+                        };
+                        serverOptions.IdpOptions = new SamlIdpOptions()
+                        {
+                            Licensee = "DEMO",
+                            LicenseKey =
+                                "eyJTb2xkRm9yIjowLjAsIktleVByZXNldCI6NiwiU2F2ZUtleSI6ZmFsc2UsIkxlZ2FjeUtleSI6ZmFsc2UsIlJlbmV3YWxTZW50VGltZSI6IjAwMDEtMDEtMDFUMDA6MDA6MDAiLCJhdXRoIjoiREVNTyIsImV4cCI6IjIwMjMtMTEtMjVUMDA6MDA6MDAiLCJpYXQiOiIyMDIyLTEwLTI1VDA5OjAwOjE3Iiwib3JnIjoiREVNTyIsImF1ZCI6Mn0=.fcLiikHn5WUYPaecYH3OtW64QAG2WHlJqcER6hKO0PF3eHul8lZYXDS7EImvqPRbnPGqBHDrTbYfqtbr4tJmFfZvwPHSuGLkDqRuAtbFbD9cblTsjkBUp+Yh1pZwXOSlMYJ1uzeMQsBs81mAYJxRrsD0JaNo3wKtPYEiOplusLPu/rh03k2hNFajyIrj7zPsgs2i6doqlhG0wI0nvwrkKJjerGM0Dup7XioTH//ZehiQT9w3iVF1nUaK3iVxaEUc/Q546hPlRBtfqy/rdD1BH97oFVes2V7EVR2nxA9vi9NOYs6YZo1K1elXuTovGodQrCedsvQvKb6/gTpoxam8qDhgmy9MH4mmfHUDFb4lgKI+LYXhi5Udpb86kbmn4KyaNEdtmVrdCUugc8TH7jIzXph06ZguEZ0YOqV/MChkoc8h4F4CG7y8XVvUAGrZhQ2NGGdOUKxg8A0lO9RLf/2Cahhkn99PeBVd+Mk6oI1kzBLIGN9rjc0+4lVfb1BBmRcczp3hUsm+sja5gqOxSR38DrBgGZrBQtSD1ug2EP4Q8thMQp6o7mCQJoOQsyjoslyWs3YFT9/4w3419iwWYwcUnKvAfk3fvkjfzB9cA0KmvlQruHwOdIjCSb8ZB3gr+h8iIfI6V2oNkycqvZBMRdVAX9GMIbTv/26qfITwuCVCTH0="
+                        };
+                    });
+
+                    builder.AddSamlAspIdentity<ApplicationUser>();
+                });
             })
 
             // Register the OpenIddict validation components.
@@ -126,6 +159,8 @@ public class Startup
                 // Register the ASP.NET Core host.
                 options.UseAspNetCore();
             });
+        
+        services.AddHostedService<Worker>();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -148,6 +183,7 @@ public class Startup
         app.UseStaticFiles();
 
         app.UseRouting();
+        app.UseOpenIddictSamlPlugin();
         
 
         app.UseAuthentication();

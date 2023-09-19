@@ -15,4 +15,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Rsk.Saml.OpenIddict" Version="8.0.0-preview1" />
+  </ItemGroup>
+
 </Project>
