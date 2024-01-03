@@ -7,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.IdP.Data;
-// using Quartz;
 using Rsk.Saml.Configuration;
 using Rsk.Saml.OpenIddict.AspNetCore.Identity.Configuration.DependencyInjection;
 using Rsk.Saml.OpenIddict.Configuration.DependencyInjection;
@@ -40,11 +39,6 @@ public class Startup
             // Configure the context to use sqlite.
             options.UseMySql(connectionString, serverVersion,
                 sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly));
-            //options.UseSqlite($"Filename={Path.Combine(Path.GetTempPath(), "openiddict-velusia-server.sqlite3")}");
-
-            // Register the entity sets needed by OpenIddict.
-            // Note: use the generic overload if you need
-            // to replace the default OpenIddict entities.
             options.UseOpenIddict();
         });
 
@@ -64,18 +58,6 @@ public class Startup
             options.ClaimsIdentity.EmailClaimType = JwtClaimTypes.Email;
         });
 
-        // // OpenIddict offers native integration with Quartz.NET to perform scheduled tasks
-        // // (like pruning orphaned authorizations/tokens from the database) at regular intervals.
-        // services.AddQuartz(options =>
-        // {
-        //     // options.UseMicrosoftDependencyInjectionJobFactory();
-        //     options.UseSimpleTypeLoader();
-        //     options.UseInMemoryStore();
-        // });
-        //
-        // // Register the Quartz.NET service and configure it to block shutdown until jobs are complete.
-        // services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
-
         services.AddOpenIddict()
 
             // Register the OpenIddict core components.
@@ -93,11 +75,6 @@ public class Startup
             // Register the OpenIddict server components.
             .AddServer(options =>
             {
-                //SAML requires this for metadata generation, looks like you can run this without setting it
-                //There does seem to be some validation on the validation options class but it doesn't throw an exception
-                //An additional check may need to be done to ensure this is set
-                //options.SetIssuer("https://localhost:5003");
-
                 // Enable the authorization, logout, token and userinfo endpoints.
                 options.SetAuthorizationEndpointUris("connect/authorize")
                     .SetLogoutEndpointUris("connect/logout")
@@ -126,33 +103,31 @@ public class Startup
                 options.AddSamlPlugin(builder =>
                 {
                     builder.UseSamlEntityFrameworkCore()
-                        .AddSamlMessageDbContext(optionsBuilder =>
-                            optionsBuilder.UseMySql(connectionString, serverVersion,
-                                sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
-                        .AddSamlConfigurationDbContext(optionsBuilder =>
-                            optionsBuilder.UseMySql(connectionString, serverVersion,
-                                sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
-                        .AddSamlArtifactDbContext(optionsBuilder =>
-                            optionsBuilder.UseMySql(connectionString, serverVersion,
-                                sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
-                        ;
+                        .AddSamlMessageDbContext(options => options.UseMySql(connectionString, serverVersion,
+                            sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
+                        .AddSamlConfigurationDbContext(options => options.UseMySql(connectionString, serverVersion,
+                            sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
+                        .AddSamlArtifactDbContext(options => options.UseMySql(connectionString, serverVersion,
+                            sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)));
 
                     builder.ConfigureSamlOpenIddictServerOptions(serverOptions =>
                     {
+                        serverOptions.IdpOptions = new SamlIdpOptions
+                        {
+                            Licensee = licensee,
+                            LicenseKey = licenseKey
+                        };
+
                         serverOptions.HostOptions = new SamlHostUserInteractionOptions()
                         {
                             LoginUrl = "/Identity/Account/Login",
                             LogoutUrl = "/Connect/Logout"
                         };
-                        serverOptions.IdpOptions = new SamlIdpOptions()
-                        {
-                            Licensee = licensee,
-                            LicenseKey = licenseKey
-                        };
                     });
 
                     builder.AddSamlAspIdentity<ApplicationUser>();
                 });
+
             })
 
             // Register the OpenIddict validation components.
@@ -166,6 +141,7 @@ public class Startup
             });
 
         services.AddHostedService<Worker>();
+
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -189,7 +165,6 @@ public class Startup
 
         app.UseRouting();
         app.UseOpenIddictSamlPlugin();
-
 
         app.UseAuthentication();
         app.UseAuthorization();

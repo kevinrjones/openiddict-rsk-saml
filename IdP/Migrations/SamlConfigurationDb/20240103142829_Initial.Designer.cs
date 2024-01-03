@@ -11,7 +11,7 @@ using Rsk.Saml.IdentityProvider.Storage.EntityFramework.DbContexts;
 namespace IdP.Migrations.SamlConfigurationDb
 {
     [DbContext(typeof(SamlConfigurationDbContext))]
-    [Migration("20231222154416_Initial")]
+    [Migration("20240103142829_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

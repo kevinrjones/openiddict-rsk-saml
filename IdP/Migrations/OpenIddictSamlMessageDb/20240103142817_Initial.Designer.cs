@@ -11,7 +11,7 @@ using Rsk.Saml.OpenIddict.EntityFrameworkCore.DbContexts;
 namespace IdP.Migrations.OpenIddictSamlMessageDb
 {
     [DbContext(typeof(OpenIddictSamlMessageDbContext))]
-    [Migration("20231222154350_Initial")]
+    [Migration("20240103142817_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

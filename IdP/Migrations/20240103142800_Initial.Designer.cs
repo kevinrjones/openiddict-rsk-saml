@@ -11,7 +11,7 @@ using OpenIddict.IdP.Data;
 namespace IdP.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231222154249_Initial")]
+    [Migration("20240103142800_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
