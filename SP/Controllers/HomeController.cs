@@ -23,10 +23,6 @@ public class HomeController : Controller
     {
         return View();
     }
-    public IActionResult Test()
-    {
-        return View("Privacy");
-    }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
