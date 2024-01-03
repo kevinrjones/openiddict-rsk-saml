@@ -1,14 +1,42 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SP.Models;
 
-namespace Rsk.AspNetCore.Authentication.Saml2p.Tests.Host.Net6.Controllers
+namespace SP.Controllers;
+
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    private readonly ILogger<HomeController> _logger;
+
+    public HomeController(ILogger<HomeController> logger)
     {
-        public IActionResult Index() => View();
-        public IActionResult LoginIdentityServer() => Challenge(new AuthenticationProperties { RedirectUri = "/" }, "saml-identityServer");
-        public IActionResult LoginOpenIddict() => Challenge(new AuthenticationProperties { RedirectUri = "/" }, "saml-openIddict");
-        public IActionResult LoginCs() => Challenge(new AuthenticationProperties { RedirectUri = "/" }, "saml-cs");
-        public IActionResult Logout() => new SignOutResult(new[] { "cookie", User.Identities.First().AuthenticationType });
+        _logger = logger;
+    }
+
+    public IActionResult Index()
+    {
+        return View();
+    }
+
+    public IActionResult Privacy()
+    {
+        return View();
+    }
+    public IActionResult Test()
+    {
+        return View("Privacy");
+    }
+
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error()
+    {
+        return View(new ErrorViewModel {RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier});
+    }
+
+    [Authorize]
+    public IActionResult Details()
+    {
+        return View();
     }
 }

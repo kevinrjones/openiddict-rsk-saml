@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IdP.Migrations.SamlConfigurationDb
 {
     /// <inheritdoc />
-    public partial class ConfigurationDbContext : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

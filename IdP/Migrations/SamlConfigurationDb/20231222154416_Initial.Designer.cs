@@ -11,15 +11,15 @@ using Rsk.Saml.IdentityProvider.Storage.EntityFramework.DbContexts;
 namespace IdP.Migrations.SamlConfigurationDb
 {
     [DbContext(typeof(SamlConfigurationDbContext))]
-    [Migration("20230919081820_ConfigurationDbContext")]
-    partial class ConfigurationDbContext
+    [Migration("20231222154416_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.11")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("Rsk.Saml.IdentityProvider.Storage.EntityFramework.Entities.ArtifactResolutionService", b =>

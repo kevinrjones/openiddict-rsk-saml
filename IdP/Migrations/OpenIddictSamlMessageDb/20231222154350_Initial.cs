@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace IdP.Migrations.OpenIddictSamlMessageDb
 {
     /// <inheritdoc />
-    public partial class SamlMessageContext : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

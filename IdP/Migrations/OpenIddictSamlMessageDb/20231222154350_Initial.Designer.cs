@@ -11,15 +11,15 @@ using Rsk.Saml.OpenIddict.EntityFrameworkCore.DbContexts;
 namespace IdP.Migrations.OpenIddictSamlMessageDb
 {
     [DbContext(typeof(OpenIddictSamlMessageDbContext))]
-    [Migration("20230919081801_SamlMessageContext")]
-    partial class SamlMessageContext
+    [Migration("20231222154350_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.11")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("Rsk.Saml.OpenIddict.EntityFrameworkCore.Models.OpenIddictEntityFrameworkCoreSamlMessage", b =>

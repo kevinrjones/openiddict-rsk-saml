@@ -7,11 +7,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OpenIddict.IdP.Data;
-using Quartz;
+// using Quartz;
 using Rsk.Saml.Configuration;
 using Rsk.Saml.OpenIddict.AspNetCore.Identity.Configuration.DependencyInjection;
 using Rsk.Saml.OpenIddict.Configuration.DependencyInjection;
-using Rsk.Saml.OpenIddict.EntityFrameworkCore.Configuration.DependacyInjection;
+using Rsk.Saml.OpenIddict.EntityFrameworkCore.Configuration.DependencyInjection;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace OpenIddict.IdP;
@@ -30,6 +30,9 @@ public class Startup
         var connectionString = Configuration.GetConnectionString("identity");
         var serverVersion = ServerVersion.AutoDetect(connectionString);
         var migrationsAssembly = typeof(Startup).Assembly.GetName().Name;
+
+        var licensee = Configuration["Licensee"];
+        var licenseKey = Configuration["LicenseKey"];
 
 
         services.AddDbContext<ApplicationDbContext>(options =>
@@ -61,17 +64,17 @@ public class Startup
             options.ClaimsIdentity.EmailClaimType = JwtClaimTypes.Email;
         });
 
-        // OpenIddict offers native integration with Quartz.NET to perform scheduled tasks
-        // (like pruning orphaned authorizations/tokens from the database) at regular intervals.
-        services.AddQuartz(options =>
-        {
-            options.UseMicrosoftDependencyInjectionJobFactory();
-            options.UseSimpleTypeLoader();
-            options.UseInMemoryStore();
-        });
-
-        // Register the Quartz.NET service and configure it to block shutdown until jobs are complete.
-        services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
+        // // OpenIddict offers native integration with Quartz.NET to perform scheduled tasks
+        // // (like pruning orphaned authorizations/tokens from the database) at regular intervals.
+        // services.AddQuartz(options =>
+        // {
+        //     // options.UseMicrosoftDependencyInjectionJobFactory();
+        //     options.UseSimpleTypeLoader();
+        //     options.UseInMemoryStore();
+        // });
+        //
+        // // Register the Quartz.NET service and configure it to block shutdown until jobs are complete.
+        // services.AddQuartzHostedService(options => options.WaitForJobsToComplete = true);
 
         services.AddOpenIddict()
 
@@ -129,6 +132,9 @@ public class Startup
                         .AddSamlConfigurationDbContext(optionsBuilder =>
                             optionsBuilder.UseMySql(connectionString, serverVersion,
                                 sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
+                        .AddSamlArtifactDbContext(optionsBuilder =>
+                            optionsBuilder.UseMySql(connectionString, serverVersion,
+                                sqlOptions => sqlOptions.MigrationsAssembly(migrationsAssembly)))
                         ;
 
                     builder.ConfigureSamlOpenIddictServerOptions(serverOptions =>
@@ -140,9 +146,8 @@ public class Startup
                         };
                         serverOptions.IdpOptions = new SamlIdpOptions()
                         {
-                            Licensee = "DEMO",
-                            LicenseKey =
-                                "eyJTb2xkRm9yIjowLjAsIktleVByZXNldCI6NiwiU2F2ZUtleSI6ZmFsc2UsIkxlZ2FjeUtleSI6ZmFsc2UsIlJlbmV3YWxTZW50VGltZSI6IjAwMDEtMDEtMDFUMDA6MDA6MDAiLCJhdXRoIjoiREVNTyIsImV4cCI6IjIwMjMtMTEtMjVUMDA6MDA6MDAiLCJpYXQiOiIyMDIyLTEwLTI1VDA5OjAwOjE3Iiwib3JnIjoiREVNTyIsImF1ZCI6Mn0=.fcLiikHn5WUYPaecYH3OtW64QAG2WHlJqcER6hKO0PF3eHul8lZYXDS7EImvqPRbnPGqBHDrTbYfqtbr4tJmFfZvwPHSuGLkDqRuAtbFbD9cblTsjkBUp+Yh1pZwXOSlMYJ1uzeMQsBs81mAYJxRrsD0JaNo3wKtPYEiOplusLPu/rh03k2hNFajyIrj7zPsgs2i6doqlhG0wI0nvwrkKJjerGM0Dup7XioTH//ZehiQT9w3iVF1nUaK3iVxaEUc/Q546hPlRBtfqy/rdD1BH97oFVes2V7EVR2nxA9vi9NOYs6YZo1K1elXuTovGodQrCedsvQvKb6/gTpoxam8qDhgmy9MH4mmfHUDFb4lgKI+LYXhi5Udpb86kbmn4KyaNEdtmVrdCUugc8TH7jIzXph06ZguEZ0YOqV/MChkoc8h4F4CG7y8XVvUAGrZhQ2NGGdOUKxg8A0lO9RLf/2Cahhkn99PeBVd+Mk6oI1kzBLIGN9rjc0+4lVfb1BBmRcczp3hUsm+sja5gqOxSR38DrBgGZrBQtSD1ug2EP4Q8thMQp6o7mCQJoOQsyjoslyWs3YFT9/4w3419iwWYwcUnKvAfk3fvkjfzB9cA0KmvlQruHwOdIjCSb8ZB3gr+h8iIfI6V2oNkycqvZBMRdVAX9GMIbTv/26qfITwuCVCTH0="
+                            Licensee = licensee,
+                            LicenseKey = licenseKey
                         };
                     });
 
@@ -159,7 +164,7 @@ public class Startup
                 // Register the ASP.NET Core host.
                 options.UseAspNetCore();
             });
-        
+
         services.AddHostedService<Worker>();
     }
 
@@ -184,7 +189,7 @@ public class Startup
 
         app.UseRouting();
         app.UseOpenIddictSamlPlugin();
-        
+
 
         app.UseAuthentication();
         app.UseAuthorization();
